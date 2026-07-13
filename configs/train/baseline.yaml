@@ -1,0 +1,39 @@
+# 基线训练配置
+# 用于在 COCO128 上进行基础训练实验
+
+# 模型
+model: yolo11n.pt  # nano 模型，适合 MPS 训练
+
+# 训练参数
+epochs: 50
+batch: 16
+imgsz: 640
+
+# 优化器
+optimizer: auto  # 自动选择 (SGD for fine-tune, AdamW for scratch)
+lr0: 0.01  # 初始学习率
+lrf: 0.01  # 最终学习率 (lr0 * lrf)
+momentum: 0.937
+weight_decay: 0.0005
+
+# 数据增强
+hsv_h: 0.015  # 色调增强
+hsv_s: 0.7    # 饱和度增强
+hsv_v: 0.4    # 亮度增强
+degrees: 0.0  # 旋转角度
+translate: 0.1 # 平移
+scale: 0.5    # 缩放
+mosaic: 1.0   # Mosaic 增强概率
+mixup: 0.0    # MixUp 增强概率
+
+# 设备
+device: mps  # Apple Silicon
+
+# 输出
+project: outputs
+name: baseline
+
+# 其他
+patience: 50  # 早停耐心值
+save: true
+verbose: true

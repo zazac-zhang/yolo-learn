@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+
+# Data (large files, don't commit)
+data/
+*.pt
+*.pth
+*.onnx
+*.mlmodel
+*.mlpackage
+
+# Training outputs
+outputs/
+runs/
+wandb/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Logs
+*.log
+wandb/
+
+# Ultralytics
+yolo11*.pt
+yolov8*.pt
