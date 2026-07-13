@@ -43,3 +43,6 @@ wandb/
 # Ultralytics
 yolo11*.pt
 yolov8*.pt
+
+# Practice data
+practice/data/
