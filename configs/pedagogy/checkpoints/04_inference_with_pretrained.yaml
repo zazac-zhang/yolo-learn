@@ -1,0 +1,96 @@
+# Notebook 04: 用预训练模型推理 — 检查点
+
+checkpoints:
+  - id: q4-1
+    question: "YOLO 推理流程的三个阶段是什么？"
+    type: choice
+    options:
+      - "读取→显示→保存"
+      - "前处理→模型推理→后处理"
+      - "标注→训练→评估"
+      - "下载→解压→运行"
+    answer: "B"
+    explanation: "前处理（resize/normalize）→ 模型推理（前向传播）→ 后处理（NMS）"
+    hint: "想想原始图片怎么变成最终的检测框"
+
+  - id: q4-2
+    question: "为什么推理前需要 resize 图片？"
+    type: choice
+    options:
+      - "为了节省显存"
+      - "模型要求固定尺寸输入"
+      - "图片太大不好看"
+      - "为了加速"
+    answer: "B"
+    explanation: "YOLO 使用固定尺寸输入（如 640x640），输入图片会被 resize 到这个尺寸"
+    hint: "卷积网络对输入尺寸有要求"
+
+  - id: q4-3
+    question: "后处理中的 NMS 作用是什么？"
+    type: fill
+    answer: "去除重复检测框"
+    explanation: "NMS（非极大值抑制）去掉同一目标的多个重叠框，只保留最好的一个"
+    hint: "想想为什么一个目标可能被检测出多个框"
+
+predict_before_run:
+  - id: p4-1
+    code: |
+      # 预测输出
+      import numpy as np
+      box1 = [0, 0, 100, 100]
+      box2 = [50, 50, 150, 150]
+      intersection = max(0, min(box1[2], box2[2]) - max(box1[0], box2[0])) * \
+                     max(0, min(box1[3], box2[3]) - max(box1[1], box2[1]))
+      print(intersection)
+    expected_output: "2500"
+    explanation: "交集宽 = min(100,150)-max(0,50) = 100-50 = 50\n交集高 = min(100,150)-max(0,50) = 100-50 = 50\n面积 = 50*50 = 2500"
+
+exercises:
+  - id: e4-1
+    title: "推理 pipeline 实现"
+    description: "用 YOLO 预训练模型对一张图片做推理，打印检测结果（类别、置信度、坐标）"
+    difficulty: basic
+    hints:
+      - "from ultralytics import YOLO"
+      - "model = YOLO('yolo11n.pt')"
+      - "results = model('image.jpg')"
+      - "遍历 results[0].boxes"
+    solution_code: |
+      from ultralytics import YOLO
+      model = YOLO("yolo11n.pt")
+      results = model("image.jpg")
+      for box in results[0].boxes:
+          cls = int(box.cls[0])
+          conf = float(box.conf[0])
+          xyxy = box.xyxy[0].tolist()
+          print(f"类{cls} 置信度{conf:.2f} 框{xyxy}")
+
+  - id: e4-2
+    title: "置信度阈值实验"
+    description: "用不同置信度阈值（0.1, 0.3, 0.5, 0.7, 0.9）对同一张图片推理，对比检测数量变化"
+    difficulty: advanced
+    hints:
+      - "results = model('image.jpg', conf=threshold)"
+      - "统计每个阈值下的检测数量"
+      - "画折线图展示阈值-数量关系"
+    solution_code: |
+      thresholds = [0.1, 0.3, 0.5, 0.7, 0.9]
+      counts = []
+      for t in thresholds:
+          results = model("image.jpg", conf=t)
+          counts.append(len(results[0].boxes))
+      print(dict(zip(thresholds, counts)))
+
+reflection:
+  - id: r4-1
+    question: "你能用自己的话描述 YOLO 推理的三个阶段吗？"
+    type: understanding
+
+  - id: r4-2
+    question: "为什么置信度阈值越高，检测数量越少？这说明了什么？"
+    type: understanding
+
+self_assessment:
+  - skill: "用 YOLO 预训练模型做推理"
+  - skill: "理解前处理和后处理的作用"
+  - skill: "调整置信度阈值观察效果"

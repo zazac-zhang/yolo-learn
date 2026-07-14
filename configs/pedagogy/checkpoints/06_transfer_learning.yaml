@@ -1,0 +1,92 @@
+# Notebook 06: 迁移学习 — 检查点
+
+checkpoints:
+  - id: q6-1
+    question: "迁移学习的核心思想是什么？"
+    type: choice
+    options:
+      - "从零开始训练"
+      - "把预训练模型的知识迁移到新任务"
+      - "只训练最后一层"
+      - "用更大的模型"
+    answer: "B"
+    explanation: "用在大数据集上学到的特征（如边缘、纹理）来帮助小数据集上的新任务"
+    hint: "想想为什么不用从零开始训练"
+
+  - id: q6-2
+    question: "冻结 Backbone 微调和全部训练的区别是什么？"
+    type: choice
+    options:
+      - "冻结更快，全部更准"
+      - "冻结只更新 Head 参数，全部更新所有参数"
+      - "没有区别"
+      - "冻结用更多显存"
+    answer: "B"
+    explanation: "冻结时 Backbone 参数不变，只训练 Neck+Head。适合小数据集防止过拟合"
+    hint: "想想「冻结」是什么意思"
+
+  - id: q6-3
+    question: "微调时通常用较小的学习率，为什么？"
+    type: fill
+    answer: "避免破坏预训练学到的特征"
+    explanation: "预训练权重已经很好，大学习率会把这些有用的特征冲掉"
+    hint: "想想预训练权重已经学到了什么"
+
+exercises:
+  - id: e6-1
+    title: "冻结 vs 全部训练对比"
+    description: "分别用冻结 Backbone 和全部训练两种方式微调 10 个 epoch，对比 mAP 和训练时间"
+    difficulty: basic
+    hints:
+      - "冻结：model.train(..., freeze=10)  # 冻结前 10 层"
+      - "全部：model.train(..., freeze=0)"
+      - "记录 mAP 和训练时间"
+    solution_code: |
+      from ultralytics import YOLO
+      # 冻结
+      model = YOLO("yolo11n.pt")
+      r1 = model.train(data=..., epochs=10, freeze=10, name="frozen")
+      # 全部
+      model = YOLO("yolo11n.pt")
+      r2 = model.train(data=..., epochs=10, freeze=0, name="full")
+
+  - id: e6-2
+    title: "不同预训练模型对比"
+    description: "用 YOLO11n 和 YOLO11s 分别微调，对比参数量、速度、mAP"
+    difficulty: advanced
+    hints:
+      - "YOLO11n: ~2M 参数"
+      - "YOLO11s: ~9M 参数"
+      - "更大的模型不一定更好（数据量小时可能过拟合）"
+    solution: ""
+
+  - id: e6-3
+    title: "设计微调策略"
+    description: "给定一个只有 200 张图片的数据集，设计最佳的微调策略（模型选择、冻结策略、学习率）"
+    difficulty: challenge
+    hints:
+      - "小数据集 → 用小模型（n）"
+      - "小数据集 → 冻结更多层"
+      - "学习率要小（如 0.001）"
+      - "增加数据增强"
+    solution: |
+      推荐策略：
+      1. 模型：YOLO11n（参数少，不易过拟合）
+      2. 冻结：freeze=10（只训练检测头）
+      3. 学习率：lr0=0.001（比默认小 10 倍）
+      4. 增强：开启 mixup=0.1, mosaic=1.0
+      5. 轮数：50-100 epoch（小数据集需要更多轮）
+
+reflection:
+  - id: r6-1
+    question: "为什么小数据集更适合迁移学习而不是从头训练？"
+    type: understanding
+
+  - id: r6-2
+    question: "什么情况下应该冻结 Backbone？什么情况下应该全部训练？"
+    type: understanding
+
+self_assessment:
+  - skill: "解释迁移学习的原理和优势"
+  - skill: "选择合适的冻结策略"
+  - skill: "根据数据集大小设计微调方案"

@@ -1,0 +1,95 @@
+# Notebook 08: 数据增强 — 检查点
+
+checkpoints:
+  - id: q8-1
+    question: "数据增强的本质是什么？"
+    type: choice
+    options:
+      - "增加数据量"
+      - "在不改变标签的前提下变换数据，增加多样性"
+      - "让图片更好看"
+      - "减少训练时间"
+    answer: "B"
+    explanation: "增强是在保持标签正确的前提下，对图片做随机变换，让模型学到更多变化"
+    hint: "关键：标签也要跟着变"
+
+  - id: q8-2
+    question: "Mosaic 增强的原理是什么？"
+    type: choice
+    options:
+      - "把图片旋转 90 度"
+      - "把 4 张图片拼成一张"
+      - "把图片裁剪成小块"
+      - "把图片变成灰度"
+    answer: "B"
+    explanation: "Mosaic 把 4 张训练图拼成一张，增加上下文信息和小目标数量"
+    hint: "想想马赛克是什么样子"
+
+  - id: q8-3
+    question: "为什么不能对验证集做数据增强？"
+    type: fill
+    answer: "验证集必须反映真实数据分布，增强会引入噪声影响评估准确性"
+    explanation: "增强后的验证集不能代表模型在真实场景的表现"
+    hint: "想想验证的目的是什么"
+
+exercises:
+  - id: e8-1
+    title: "增强效果对比"
+    description: "分别用默认增强和关闭增强训练 10 个 epoch，对比 mAP"
+    difficulty: basic
+    hints:
+      - "默认：model.train(data=..., augment=True)"
+      - "关闭：model.train(data=..., augment=False)"
+      - "对比 mAP@0.5 和 mAP@0.5:0.95"
+    solution_code: |
+      from ultralytics import YOLO
+      # 默认增强
+      model = YOLO("yolo11n.pt")
+      r1 = model.train(data=..., epochs=10, augment=True, name="aug_default")
+      # 关闭增强
+      model = YOLO("yolo11n.pt")
+      r2 = model.train(data=..., epochs=10, augment=False, name="aug_none")
+
+  - id: e8-2
+    title: "增强策略调试"
+    description: "尝试不同的增强组合（mosaic, mixup, hsv），找到最适合你数据集的策略"
+    difficulty: advanced
+    hints:
+      - "mosaic=1.0 开启 Mosaic"
+      - "mixup=0.1 开启 MixUp"
+      - "hsv_h=0.015 调整色调"
+      - "先试默认，再逐步调整"
+    solution: ""
+
+  - id: e8-3
+    title: "设计增强方案"
+    description: "针对以下场景，设计合适的增强策略：\n1. 夜间监控（光照变化大）\n2. 远距离目标（小目标多）\n3. 遮挡严重"
+    difficulty: challenge
+    hints:
+      - "夜间：增强 hsv_h, hsv_s, hsv_v"
+      - "小目标：开启 mosaic（增加小目标数量）"
+      - "遮挡：开启 cutout / random erasing"
+    solution: |
+      夜间监控：
+        hsv_h=0.02, hsv_s=0.7, hsv_v=0.5（增强颜色抖动）
+        翻转、旋转（增加多样性）
+      远距离目标：
+        mosaic=1.0（增加小目标密度）
+        scale=0.5（随机缩放模拟远近）
+      遮挡严重：
+        cutout=0.2（随机遮挡模拟遮挡）
+        mixup=0.1（混合图片增加遮挡）
+
+reflection:
+  - id: r8-1
+    question: "数据增强能代替收集更多数据吗？为什么？"
+    type: understanding
+
+  - id: r8-2
+    question: "什么情况下增强反而会损害模型性能？"
+    type: understanding
+
+self_assessment:
+  - skill: "解释 Mosaic、MixUp 等常见增强的原理"
+  - skill: "对比增强开启/关闭的训练效果"
+  - skill: "根据数据特点选择合适的增强策略"

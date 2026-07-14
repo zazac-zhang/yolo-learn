@@ -1,0 +1,135 @@
+# Notebook 02: 数据集与标注 — 检查点 + 练习 + 反思
+
+checkpoints:
+  - id: q2-1
+    question: "YOLO 标注格式（TXT 文件）每行包含哪些信息？"
+    type: choice
+    options:
+      - "class_id x_center y_center width height"
+      - "class_id x1 y1 x2 y2"
+      - "x1 y1 x2 y2 confidence"
+      - "class_name x y width height"
+    answer: "A"
+    explanation: "YOLO 格式：类别ID + 中心坐标 + 宽高（归一化到 0-1）"
+    hint: "注意是中心坐标，不是左上角"
+
+  - id: q2-2
+    question: "YOLO 标注中的坐标是像素值还是归一化值？"
+    type: choice
+    options:
+      - "像素值"
+      - "归一化到 0-1"
+      - "百分比 0-100"
+      - "取决于图片大小"
+    answer: "B"
+    explanation: "YOLO 格式使用归一化坐标（除以图片宽高），这样不同分辨率的图片可以用同一套标注"
+    hint: "想想为什么不用像素值"
+
+  - id: q2-3
+    question: "data.yaml 文件中 names 字段的作用是什么？"
+    type: fill
+    answer: "映射类别ID到类别名称"
+    explanation: "names 将数字 ID（0, 1, 2...）映射到人类可读的类别名"
+    hint: "想想为什么需要这个映射"
+
+predict_before_run:
+  - id: p2-1
+    code: |
+      # 归一化计算
+      img_w, img_h = 640, 480
+      box = [100, 50, 300, 200]  # xyxy 格式
+      x_center = (box[0] + box[2]) / 2 / img_w
+      print(f"{x_center:.4f}")
+    expected_output: "0.3125"
+    explanation: "x_center = (100+300)/2/640 = 200/640 = 0.3125"
+
+  - id: p2-2
+    code: |
+      # YOLO 标注行解析
+      line = "0 0.5 0.5 0.3 0.4"
+      parts = line.split()
+      print(f"class={parts[0]}, w={parts[3]}")
+    expected_output: "class=0, w=0.3"
+    explanation: "split() 按空格分割，parts[0]=类别ID，parts[3]=宽度"
+
+exercises:
+  - id: e2-1
+    title: "像素坐标转 YOLO 格式"
+    description: "图片尺寸 800x600，有一个框 xyxy=[100, 80, 400, 320]，转换为 YOLO 格式（class_id=0）"
+    difficulty: basic
+    hints:
+      - "x_center = (100+400)/2/800"
+      - "y_center = (80+320)/2/600"
+      - "width = (400-100)/800"
+      - "height = (320-80)/600"
+    solution: "0 0.3125 0.3333 0.375 0.4"
+
+  - id: e2-2
+    title: "分析数据集分布"
+    description: "下载 COCO128 后，统计每个类别的目标数量，找出最常见的类别和最稀少的类别"
+    difficulty: basic
+    hints:
+      - "遍历所有 label txt 文件"
+      - "每行第一个数字是 class_id"
+      - "用 Counter 统计频次"
+    solution_code: |
+      from collections import Counter
+      from pathlib import Path
+      counter = Counter()
+      for f in Path("data/coco128/train/labels").glob("*.txt"):
+          for line in f.read_text().strip().split("\n"):
+              if line:
+                  counter[int(line.split()[0])] += 1
+      print(f"最常见: {counter.most_common(1)}")
+      print(f"最稀少: {counter.most_common()[-1]}")
+
+  - id: e2-3
+    title: "标注质量检查"
+    description: "写一个函数检查 YOLO 标注文件的常见错误：坐标超出 [0,1]、宽高为负、类别ID超出范围"
+    difficulty: advanced
+    hints:
+      - "读取每行，split 后转 float"
+      - "检查 x_center, y_center, width, height 是否在 [0,1]"
+      - "检查 width 和 height 是否 > 0"
+      - "检查 class_id 是否在 [0, nc-1]"
+    solution_code: |
+      def check_labels(label_dir, nc):
+          errors = []
+          for f in Path(label_dir).glob("*.txt"):
+              for i, line in enumerate(f.read_text().strip().split("\n")):
+                  if not line:
+                      continue
+                  parts = line.split()
+                  cls_id = int(parts[0])
+                  coords = list(map(float, parts[1:]))
+                  if cls_id >= nc:
+                      errors.append(f"{f.name}:{i} class_id {cls_id} >= nc {nc}")
+                  if any(c < 0 or c > 1 for c in coords):
+                      errors.append(f"{f.name}:{i} coords out of [0,1]")
+                  if coords[2] <= 0 or coords[3] <= 0:
+                      errors.append(f"{f.name}:{i} non-positive w/h")
+          return errors
+
+  - id: e2-4
+    title: "设计数据集收集方案"
+    description: "为你选择的检测场景（上一章的练习），设计数据收集方案：数据来源、标注工具、质量控制流程"
+    difficulty: challenge
+    hints:
+      - "数据来源：公开数据集、自己采集、网络爬虫"
+      - "标注工具：LabelImg、CVAT、Roboflow"
+      - "质量控制：交叉验证、一致性检查"
+    solution: ""
+
+reflection:
+  - id: r2-1
+    question: "你能解释 YOLO 标注格式中每个数字的含义吗？"
+    type: understanding
+
+  - id: r2-2
+    question: "为什么 YOLO 使用归一化坐标而不是像素坐标？"
+    type: understanding
+
+self_assessment:
+  - skill: "像素坐标和 YOLO 格式的互转"
+  - skill: "分析数据集类别分布"
+  - skill: "检查标注文件的常见错误"

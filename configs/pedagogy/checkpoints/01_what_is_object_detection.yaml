@@ -1,0 +1,119 @@
+# Notebook 01: 什么是目标检测 — 检查点 + 练习 + 反思
+
+checkpoints:
+  - id: q1-1
+    question: "目标检测和图像分类的核心区别是什么？"
+    type: choice
+    options:
+      - "分类只识别整体类别，检测还要定位目标位置"
+      - "检测只能识别一个目标，分类能识别多个"
+      - "分类用 CNN，检测不用"
+      - "没有区别，只是叫法不同"
+    answer: "A"
+    explanation: "分类输出类别标签，检测输出类别 + 位置（边界框）"
+    hint: "想想输出的结果包含什么信息"
+
+  - id: q1-2
+    question: "YOLO 的全称是什么？"
+    type: fill
+    answer: "You Only Look Once"
+    explanation: "YOLO = You Only Look Once，一次前向传播完成检测"
+    hint: "强调它只需要看一次"
+
+  - id: q1-3
+    question: "边界框（Bounding Box）通常有几种坐标表示方式？"
+    type: choice
+    options:
+      - "1 种：xyxy"
+      - "2 种：xyxy 和 xywh"
+      - "3 种：xyxy、xywh、cxcywh"
+      - "只有经纬度坐标"
+    answer: "C"
+    explanation: "xyxy=左上+右下，xywh=左上+宽高，cxcywh=中心+宽高"
+    hint: "想想怎么描述一个矩形"
+
+  - id: q1-4
+    question: "置信度（Confidence）表示什么？"
+    type: choice
+    options:
+      - "模型认为这个框里有目标的概率 × 类别概率"
+      - "模型的训练精度"
+      - "图片的清晰度"
+      - "目标的大小"
+    answer: "A"
+    explanation: "Confidence = P(Object) × IoU，反映模型对检测结果的把握"
+    hint: "它和「有目标」以及「框准了」都有关"
+
+predict_before_run:
+  - id: p1-1
+    code: |
+      # 这段代码会输出什么？
+      boxes = [[10, 10, 50, 50], [30, 30, 70, 70]]
+      print(len(boxes))
+    expected_output: "2"
+    explanation: "boxes 是一个包含 2 个列表的列表，len() 返回元素个数"
+
+  - id: p1-2
+    code: |
+      # 这段代码会输出什么？
+      x1, y1, x2, y2 = 10, 20, 100, 200
+      width = x2 - x1
+      print(width)
+    expected_output: "90"
+    explanation: "width = 100 - 10 = 90"
+
+exercises:
+  - id: e1-1
+    title: "解释边界框格式"
+    description: "给定一个框 [50, 30, 200, 150]，分别用 xyxy 和 xywh 格式表示它，并解释每种格式的含义"
+    difficulty: basic
+    hints:
+      - "xyxy 格式就是 [x1, y1, x2, y2]"
+      - "xywh 格式是 [x, y, width, height]"
+      - "width = x2 - x1, height = y2 - y1"
+    solution: "xyxy: [50, 30, 200, 150]（左上角和右下角坐标）\nxywh: [50, 30, 150, 120]（左上角坐标 + 宽高）"
+    validation_hint: "检查 width 和 height 的计算是否正确"
+
+  - id: e1-2
+    title: "目标检测 vs 图像分割"
+    description: "用 3 句话向一个不懂技术的朋友解释：目标检测、语义分割、实例分割的区别"
+    difficulty: basic
+    hints:
+      - "检测 = 画框 + 标类别"
+      - "语义分割 = 给每个像素标类别（不区分个体）"
+      - "实例分割 = 给每个像素标类别 + 区分个体"
+    solution: "检测：用框标出每个目标在哪\n语义分割：把图片涂色，同类同色，但分不清个体\n实例分割：每个目标单独涂色，能分清个体"
+
+  - id: e1-3
+    title: "YOLO 为什么快？"
+    description: "对比 R-CNN 系列和 YOLO 的检测流程，解释为什么 YOLO 速度快"
+    difficulty: advanced
+    hints:
+      - "R-CNN 先提候选区域（Region Proposal），再分类"
+      - "YOLO 直接一次前向传播出结果"
+      - "想想两步 vs 一步的区别"
+    solution: "R-CNN: 提取候选区域 → 分类 → 回归（两阶段）\nYOLO: 一次前向传播直接输出所有框和类别（单阶段）\n少了一步候选区域提取 → 快很多"
+
+  - id: e1-4
+    title: "设计检测场景"
+    description: "选一个你感兴趣的实际场景（如交通监控、垃圾分类、人脸检测），列出：目标类别、可能的挑战、你需要多少数据"
+    difficulty: challenge
+    hints:
+      - "类别不要太多，3-10 类最好"
+      - "挑战要考虑遮挡、光照、尺度变化等"
+      - "数据量：简单任务几百张，复杂任务几千张"
+    solution: ""
+
+reflection:
+  - id: r1-1
+    question: "你理解目标检测和分类的区别了吗？能用自己的话说清楚吗？"
+    type: understanding
+
+  - id: r1-2
+    question: "如果让你用目标检测做一个项目，你会选什么场景？为什么？"
+    type: understanding
+
+self_assessment:
+  - skill: "解释目标检测 vs 图像分类"
+  - skill: "描述 YOLO 的基本工作原理"
+  - skill: "理解边界框的坐标格式"

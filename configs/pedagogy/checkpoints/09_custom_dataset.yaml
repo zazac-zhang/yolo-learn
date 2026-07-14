@@ -1,0 +1,127 @@
+# Notebook 09: 自定义数据集 — 检查点
+
+checkpoints:
+  - id: q9-1
+    question: "data.yaml 必须包含哪些字段？"
+    type: choice
+    options:
+      - "只有 names"
+      - "path, train, val, nc, names"
+      - "只有 train 和 val"
+      - "只有 path"
+    answer: "B"
+    explanation: "path（数据集根目录）、train/val（图片路径）、nc（类别数）、names（类别名）"
+    hint: "想想训练时需要知道哪些信息"
+
+  - id: q9-2
+    question: "如果标注格式是 COCO JSON，怎么转成 YOLO TXT？"
+    type: choice
+    options:
+      - "手动逐个转换"
+      - "用 ultralytics 的 converter 或 Roboflow"
+      - "不需要转换，YOLO 直接支持"
+      - "用 Photoshop"
+    answer: "B"
+    explanation: "ultralytics 内置格式转换器，或用 Roboflow 在线转换"
+    hint: "有现成的工具"
+
+  - id: q9-3
+    question: "训练集/验证集/测试集通常的划分比例是多少？"
+    type: fill
+    answer: "80%/10%/10% 或 70%/15%/15%"
+    explanation: "常见比例，数据量小时可以调整。关键是验证集和测试集不能太小"
+    hint: "想想每个集合的作用"
+
+exercises:
+  - id: e9-1
+    title: "创建自定义 data.yaml"
+    description: "为你的数据集创建 data.yaml 文件，包含正确的路径和类别信息"
+    difficulty: basic
+    hints:
+      - "path 是数据集根目录的绝对路径"
+      - "train/val 是相对于 path 的路径"
+      - "names 用字典格式 {0: 'cat', 1: 'dog'}"
+    solution_code: |
+      import yaml
+      data = {
+          "path": "/absolute/path/to/dataset",
+          "train": "train/images",
+          "val": "val/images",
+          "nc": 2,
+          "names": {0: "cat", 1: "dog"}
+      }
+      with open("data.yaml", "w") as f:
+          yaml.dump(data, f)
+
+  - id: e9-2
+    title: "数据集质量检查"
+    description: "写一个脚本检查数据集：标注文件和图片是否对应、标注格式是否正确、类别分布是否均衡"
+    difficulty: advanced
+    hints:
+      - "检查每个 label 文件对应的 image 文件是否存在"
+      - "检查每行的格式：5 个值，class_id < nc"
+      - "用 Counter 统计类别分布"
+    solution_code: |
+      from pathlib import Path
+      from collections import Counter
+      def check_dataset(img_dir, label_dir, nc):
+          errors = []
+          counter = Counter()
+          for img in Path(img_dir).glob("*"):
+              label = Path(label_dir) / (img.stem + ".txt")
+              if not label.exists():
+                  errors.append(f"Missing label: {label}")
+                  continue
+              for line in label.read_text().strip().split("\n"):
+                  if not line: continue
+                  parts = line.split()
+                  if len(parts) != 5:
+                      errors.append(f"{label}: bad format")
+                  cls = int(parts[0])
+                  if cls >= nc:
+                      errors.append(f"{label}: class {cls} >= nc {nc}")
+                  counter[cls] += 1
+          return errors, counter
+
+  - id: e9-3
+    title: "数据集划分策略"
+    description: "写一个函数将数据集按 8:1:1 比例划分成 train/val/test，确保类别分布一致（分层采样）"
+    difficulty: challenge
+    hints:
+      - "先按类别分组"
+      - "每个类别内部随机打乱"
+      - "按比例切分"
+      - "合并所有类别的划分结果"
+    solution_code: |
+      import random
+      from pathlib import Path
+      from collections import defaultdict
+      def stratified_split(label_dir, ratio=(0.8, 0.1, 0.1)):
+          # 按类别分组
+          class_files = defaultdict(list)
+          for f in Path(label_dir).glob("*.txt"):
+              cls = int(f.read_text().strip().split()[0])
+              class_files[cls].append(f)
+          # 分层采样
+          train, val, test = [], [], []
+          for cls, files in class_files.items():
+              random.shuffle(files)
+              n = len(files)
+              train.extend(files[:int(n*ratio[0])])
+              val.extend(files[int(n*ratio[0]):int(n*sum(ratio[:2]))])
+              test.extend(files[int(n*sum(ratio[:2])):])
+          return train, val, test
+
+reflection:
+  - id: r9-1
+    question: "为什么标注质量比标注数量更重要？"
+    type: understanding
+
+  - id: r9-2
+    question: "分层采样（stratified split）为什么比随机划分更好？"
+    type: understanding
+
+self_assessment:
+  - skill: "创建正确的 data.yaml 配置文件"
+  - skill: "检查数据集质量和标注格式"
+  - skill: "实现数据集划分（分层采样）"

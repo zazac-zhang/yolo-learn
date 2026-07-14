@@ -1,0 +1,95 @@
+# Notebook 10: 导出与部署 — 检查点
+
+checkpoints:
+  - id: q10-1
+    question: "ONNX 格式的优势是什么？"
+    type: choice
+    options:
+      - "文件最小"
+      - "跨框架通用，支持多种推理引擎"
+      - "速度最快"
+      - "精度最高"
+    answer: "B"
+    explanation: "ONNX 是开放标准，PyTorch/TensorFlow/ONNX Runtime 都支持"
+    hint: "ONNX 的全称包含 'Interoperability'"
+
+  - id: q10-2
+    question: "FP16 量化的主要效果是什么？"
+    type: choice
+    options:
+      - "精度翻倍"
+      - "模型大小减半，推理速度提升，精度基本不变"
+      - "训练更快"
+      - "支持更多设备"
+    answer: "B"
+    explanation: "FP16 将权重从 32 位压缩到 16 位，减少内存占用和计算量"
+    hint: "想想位宽变小会怎样"
+
+  - id: q10-3
+    question: "导出模型后需要验证什么？"
+    type: fill
+    answer: "验证导出模型的推理结果和原模型一致"
+    explanation: "导出过程可能引入精度损失，需要对比原模型和导出模型的输出"
+    hint: "想想什么情况下导出会出问题"
+
+exercises:
+  - id: e10-1
+    title: "格式对比实验"
+    description: "将同一个模型导出为 ONNX 和 CoreML，对比文件大小和推理速度"
+    difficulty: basic
+    hints:
+      - "model.export(format='onnx')"
+      - "model.export(format='coreml')"
+      - "用 os.path.getsize() 对比大小"
+      - "用 time.time() 对比推理速度"
+    solution_code: |
+      import os, time
+      from ultralytics import YOLO
+      model = YOLO("yolo11n.pt")
+      # ONNX
+      onnx_path = model.export(format="onnx")
+      onnx_size = os.path.getsize(onnx_path) / 1024 / 1024
+      # CoreML
+      coreml_path = model.export(format="coreml")
+      coreml_size = os.path.getsize(coreml_path) / 1024 / 1024
+      print(f"ONNX: {onnx_size:.1f} MB")
+      print(f"CoreML: {coreml_size:.1f} MB")
+
+  - id: e10-2
+    title: "量化效果测试"
+    description: "对比 FP32、FP16 两种精度的模型大小和 mAP，分析精度损失"
+    difficulty: advanced
+    hints:
+      - "FP32: model.export(format='onnx')"
+      - "FP16: model.export(format='onnx', half=True)"
+      - "分别用 val() 评估两个模型"
+    solution: ""
+
+  - id: e10-3
+    title: "部署方案设计"
+    description: "为以下场景选择最佳部署方案：\n1. iOS 手机 APP\n2. 工业服务器\n3. 树莓派\n4. 浏览器"
+    difficulty: challenge
+    hints:
+      - "iOS: CoreML"
+      - "服务器: ONNX Runtime 或 TensorRT"
+      - "树莓派: NCNN 或 TFLite"
+      - "浏览器: ONNX.js 或 TensorFlow.js"
+    solution: |
+      iOS APP → CoreML（苹果原生支持，性能最优）
+      工业服务器 → TensorRT（NVIDIA GPU，最快）
+      树莓派 → NCNN（ARM 优化，轻量级）
+      浏览器 → ONNX.js（跨平台，WebGPU 加速）
+
+reflection:
+  - id: r10-1
+    question: "为什么同一个模型在不同格式下性能会有差异？"
+    type: understanding
+
+  - id: r10-2
+    question: "选择部署格式时需要考虑哪些因素？"
+    type: understanding
+
+self_assessment:
+  - skill: "将模型导出为 ONNX/CoreML 格式"
+  - skill: "对比不同格式的大小和速度"
+  - skill: "根据部署场景选择最佳格式"

@@ -1,0 +1,118 @@
+# Notebook 03: YOLO 架构 — 检查点 + 练习 + 反思
+
+checkpoints:
+  - id: q3-1
+    question: "YOLO 的三个主要组件是什么？"
+    type: choice
+    options:
+      - "Encoder, Decoder, Loss"
+      - "Backbone, Neck, Head"
+      - "Input, Process, Output"
+      - "Conv, Pool, FC"
+    answer: "B"
+    explanation: "Backbone 提取特征 → Neck 融合多尺度 → Head 输出检测结果"
+    hint: "想想数据从输入到输出经过哪些阶段"
+
+  - id: q3-2
+    question: "Backbone 的作用是什么？"
+    type: choice
+    options:
+      - "直接输出检测框"
+      - "提取图像的多尺度特征"
+      - "计算损失函数"
+      - "进行数据增强"
+    answer: "B"
+    explanation: "Backbone 是特征提取器，输出不同尺度的特征图（如 80x80, 40x40, 20x20）"
+    hint: "想想输入图片经过 Backbone 后变成什么"
+
+  - id: q3-3
+    question: "FPN（特征金字塔）解决什么问题？"
+    type: choice
+    options:
+      - "训练速度太慢"
+      - "小目标检测效果差"
+      - "显存不够"
+      - "类别太多"
+    answer: "B"
+    explanation: "FPN 融合高低层特征，让小目标（高层语义）和大目标（低层细节）都能被检测"
+    hint: "小目标在深层特征图中会消失"
+
+predict_before_run:
+  - id: p3-1
+    code: |
+      # 特征图尺寸计算
+      img_size = 640
+      stride = 8  # 第一层下采样步长
+      feat_size = img_size // stride
+      print(feat_size)
+    expected_output: "80"
+    explanation: "640 / 8 = 80，所以 640x640 输入经过 stride=8 后变成 80x80 特征图"
+
+  - id: p3-2
+    code: |
+      # Anchor 计算
+      num_anchors = 3
+      num_classes = 80
+      feat_h, feat_w = 80, 80
+      output_size = feat_h * feat_w * num_anchors * (num_classes + 5)
+      print(output_size)
+    expected_output: "1632000"
+    explanation: "每个 anchor 预测 80 个类别 + 4 个框坐标 + 1 个置信度 = 85，乘以 anchor 数和特征图大小"
+
+exercises:
+  - id: e3-1
+    title: "画出 YOLO 数据流"
+    description: "用文字描述一张 640x640 图片从输入到输出的完整流程，包括每个阶段的张量形状"
+    difficulty: basic
+    hints:
+      - "输入: (1, 3, 640, 640)"
+      - "Backbone 输出: 3 个尺度的特征图"
+      - "每个尺度的 anchor 数量和预测头"
+    solution: |
+      输入: (1, 3, 640, 640)
+      Backbone → P3: (1, 256, 80, 80), P4: (1, 512, 40, 40), P5: (1, 1024, 20, 20)
+      Neck (FPN) → 融合多尺度特征
+      Head → 每个位置预测 num_anchors × (classes + 5) 个值
+      后处理 → NMS → 最终检测框
+
+  - id: e3-2
+    title: "不同模型大小对比"
+    description: "对比 YOLO11n, YOLO11s, YOLO11m 的参数量和速度，分析各自的适用场景"
+    difficulty: advanced
+    hints:
+      - "n=nano（最小），s=small，m=medium"
+      - "参数量影响显存和速度"
+      - "边缘设备用 n，服务器用 m/l"
+    solution: |
+      YOLO11n: ~2M 参数，最快，适合移动端/嵌入式
+      YOLO11s: ~9M 参数，平衡，适合普通 GPU
+      YOLO11m: ~20M 参数，更准，需要更多显存
+
+  - id: e3-3
+    title: "修改检测头"
+    description: "如果你要检测 5 个类别（而不是 80 个），YOLO11n 的输出张量形状会怎么变？计算具体数字"
+    difficulty: challenge
+    hints:
+      - "每个 anchor 预测: num_classes + 5"
+      - "YOLO11n 默认 3 个 anchor per scale"
+      - "3 个尺度: 80x80, 40x40, 20x20"
+    solution: |
+      每个 anchor: 5 + 5 = 10 个值
+      P3: 80×80×3×10 = 192000
+      P4: 40×40×3×10 = 48000
+      P5: 20×20×3×10 = 12000
+      总计: 252000 个预测
+
+reflection:
+  - id: r3-1
+    question: "你能用一句话解释 Backbone、Neck、Head 各自的作用吗？"
+    type: understanding
+
+  - id: r3-2
+    question: "为什么小目标检测更难？FPN 是怎么解决这个问题的？"
+    type: understanding
+
+self_assessment:
+  - skill: "描述 YOLO 的 Backbone-Neck-Head 架构"
+  - skill: "计算特征图尺寸和输出张量形状"
+  - skill: "理解 FPN 多尺度特征融合"

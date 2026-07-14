@@ -1,0 +1,99 @@
+# Notebook 05: 训练基础 — 检查点
+
+checkpoints:
+  - id: q5-1
+    question: "YOLO 的损失函数包含哪几部分？"
+    type: choice
+    options:
+      - "只有分类损失"
+      - "分类损失 + 定位损失 + 置信度损失"
+      - "MSE + MAE"
+      - "交叉熵 + L2"
+    answer: "B"
+    explanation: "分类损失（类别预测）、定位损失（框坐标）、置信度损失（有无目标）"
+    hint: "想想模型预测了哪些东西，每个都需要一个损失"
+
+  - id: q5-2
+    question: "学习率太大/太小分别会导致什么问题？"
+    type: choice
+    options:
+      - "太大过拟合，太小欠拟合"
+      - "太大震荡不收敛，太小训练慢或陷入局部最优"
+      - "没有影响"
+      - "太大显存溢出，太小速度慢"
+    answer: "B"
+    explanation: "学习率太大 → 梯度震荡，损失不下降；太小 → 训练极慢，可能卡在局部最优"
+    hint: "想想梯度下降的步长"
+
+  - id: q5-3
+    question: "epochs 和 iterations 的区别是什么？"
+    type: fill
+    answer: "epoch 是完整遍历一次数据集，iteration 是一次参数更新"
+    explanation: "1 epoch = 数据集大小 / batch_size 个 iterations"
+    hint: "一个看全部数据，一个看一个 batch"
+
+predict_before_run:
+  - id: p5-1
+    code: |
+      # 学习率 warmup 计算
+      lr_init = 0.01
+      lr_final = 0.001
+      warmup_epochs = 3
+      epoch = 1  # warmup 期间
+      lr = lr_init * (epoch / warmup_epochs)
+      print(f"{lr:.4f}")
+    expected_output: "0.0033"
+    explanation: "warmup 期间学习率线性增长：0.01 * (1/3) = 0.0033"
+
+exercises:
+  - id: e5-1
+    title: "超参数调优实验"
+    description: "分别用 lr0=0.01 和 lr0=0.001 训练 5 个 epoch，对比最终 loss"
+    difficulty: basic
+    hints:
+      - "model.train(data=..., epochs=5, lr0=0.01)"
+      - "记录两次实验的最终 loss"
+      - "对比 loss 下降曲线"
+    solution_code: |
+      from ultralytics import YOLO
+      model = YOLO("yolo11n.pt")
+      r1 = model.train(data="../configs/data/coco128.yaml", epochs=5, lr0=0.01, name="lr_high")
+      r2 = model.train(data="../configs/data/coco128.yaml", epochs=5, lr0=0.001, name="lr_low")
+
+  - id: e5-2
+    title: "Batch Size 影响分析"
+    description: "用 batch_size=8 和 batch_size=32 各训练 5 个 epoch，对比训练速度和最终 mAP"
+    difficulty: advanced
+    hints:
+      - "batch 越大，每个 epoch 越快（但显存要求越高）"
+      - "batch 越大，梯度估计越稳定"
+      - "小 batch 有正则化效果"
+    solution: ""
+
+  - id: e5-3
+    title: "设计学习率调度策略"
+    description: "解释 warmup + cosine decay 的原理，为什么比固定学习率好？"
+    difficulty: challenge
+    hints:
+      - "warmup 避免初期梯度爆炸"
+      - "cosine decay 让后期学习率逐渐减小"
+      - "初期大步探索，后期小步精调"
+    solution: |
+      Warmup（前 N epoch）：学习率从 0 线性增长到 lr0
+        → 避免随机初始化的权重产生过大梯度
+      Cosine Decay：学习率按余弦曲线从 lr0 降到 lr_min
+        → 初期大步快速下降，后期小步精细调整
+
+reflection:
+  - id: r5-1
+    question: "你能解释 loss 下降曲线的含义吗？如果 loss 不下降可能是什么原因？"
+    type: understanding
+
+  - id: r5-2
+    question: "学习率、batch size、epochs 这三个超参数之间有什么关系？"
+    type: understanding
+
+self_assessment:
+  - skill: "解释 YOLO 损失函数的三个组成部分"
+  - skill: "调整学习率和 batch size 观察训练效果"
+  - skill: "理解 warmup 和 learning rate schedule"

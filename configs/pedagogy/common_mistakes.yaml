@@ -1,0 +1,64 @@
+# 常见错误库 — 跨 notebook 共享
+
+- id: m-iou-1
+  description: "IoU 计算时坐标格式错误"
+  wrong_code: "iou = compute_iou([10, 10, 50, 50], [30, 30, 70, 70])  # 假设函数期望 xyxy"
+  correct_code: "确保框是 [x1, y1, x2, y2] 格式，不是 [x, y, w, h]"
+  explanation: "YOLO 内部用 xyxy，但标注文件是 xywh。混淆两者会导致 IoU 计算完全错误"
+  topic: iou
+
+- id: m-iou-2
+  description: "IoU 值域搞错"
+  wrong_code: "if iou > 1.0: ..."  # IoU 不会超过 1
+  correct_code: "if iou > 0.5: ...  # 通常阈值 0.5"
+  explanation: "IoU 范围是 [0, 1]，完全重叠为 1，无重叠为 0"
+  topic: iou
+
+- id: m-nms-1
+  description: "NMS 阈值设置不当"
+  wrong_code: "non_max_suppression(boxes, scores, iou_threshold=0.99)  # 太高"
+  correct_code: "non_max_suppression(boxes, scores, iou_threshold=0.5)  # 通常 0.4-0.6"
+  explanation: "阈值太高 → 漏检，阈值太低 → 重复检测。通常 0.4-0.6 是合理范围"
+  topic: nms
+
+- id: m-nms-2
+  description: "NMS 输入格式错误"
+  wrong_code: "boxes = [[x1, y1, w, h], ...]  # xywh 格式"
+  correct_code: "boxes = [[x1, y1, x2, y2], ...]  # xyxy 格式"
+  explanation: "NMS 通常要求 xyxy 格式。如果数据是 xywh，需要先转换"
+  topic: nms
+
+- id: m-train-1
+  description: "训练时 device 设置错误"
+  wrong_code: "model.train(device='mps')  # 硬编码"
+  correct_code: "model.train(device='auto')  # 自动选择"
+  explanation: "硬编码 device 会导致在不同机器上报错。用 auto 让框架自动选择"
+  topic: training
+
+- id: m-train-2
+  description: "忘记设置训练输出目录"
+  wrong_code: "model.train(data='data.yaml')  # 输出到默认目录"
+  correct_code: "model.train(data='data.yaml', name='my_experiment', project='outputs/')"
+  explanation: "不指定 name/project 会覆盖之前的实验结果"
+  topic: training
+
+- id: m-data-1
+  description: "data.yaml 中路径错误"
+  wrong_code: "train: /absolute/path/to/train/images  # 硬编码绝对路径"
+  correct_code: "train: ./train/images  # 相对路径，可移植"
+  explanation: "绝对路径在不同机器上会失效。用相对路径（相对于 data.yaml 所在目录）"
+  topic: data
+
+- id: m-data-2
+  description: "类别 ID 从 1 开始"
+  wrong_code: "names: {1: 'cat', 2: 'dog'}  # ID 从 1 开始"
+  correct_code: "names: {0: 'cat', 1: 'dog'}  # ID 从 0 开始"
+  explanation: "YOLO 类别 ID 从 0 开始，从 1 开始会导致训练时类别错位"
+  topic: data
+
+- id: m-eval-1
+  description: "混淆 mAP@0.5 和 mAP@0.5:0.95"
+  wrong_code: "print(f'mAP: {metrics.box.map}')  # 这是 mAP@0.5:0.95"
+  correct_code: "print(f'mAP@0.5: {metrics.box.map50}')  # 这才是 mAP@0.5"
+  explanation: "metrics.box.map 是 IoU 从 0.5 到 0.95 的平均，metrics.box.map50 是 IoU=0.5 的 mAP"
+  topic: evaluation
