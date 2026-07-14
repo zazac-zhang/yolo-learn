@@ -5,8 +5,11 @@
 ## 快速开始
 
 ```bash
-# 安装依赖
+# 安装核心依赖
 uv sync
+
+# 安装完整依赖（含 notebook、部署工具）
+uv sync --extra full
 
 # 启动 Jupyter
 uv run jupyter notebook
@@ -33,21 +36,58 @@ uv run jupyter notebook
 
 ```
 yolo_learn/
-├── notebooks/              # 核心学习内容
-├── src/yolo_learn/         # 自定义工具模块
+├── src/yolo_learn/         # 核心引擎
+│   ├── data/               #   数据集、增强、下载
+│   ├── models/             #   训练、导出、推理
+│   ├── eval/               #   指标 (IoU, mAP, NMS)、评估
+│   └── viz/                #   可视化
+├── notebooks/              # 学习 Notebook（教学层）
+├── scripts/                # CLI 入口（薄壳）
 ├── configs/                # 训练和数据配置
-├── scripts/                # 实用脚本
-├── docs/                   # 理论文档
+├── practice/               # 实战挑战（安全帽检测）
+├── tests/                  # 单元测试
+├── docs/                   # 文档、ADR、Agent 配置
 ├── outputs/                # 训练输出（gitignore）
 └── data/                   # 数据集（gitignore）
 ```
 
-## 数据集
+## 使用 src 模块
 
-使用 **COCO128** —— COCO 的 128 张图片子集，ultralytics 自动下载。
+```python
+# 数据
+from yolo_learn.data.dataset import read_data_yaml, print_dataset_summary
+from yolo_learn.data.augment import get_augment_params
+from yolo_learn.data.download import download_coco128
+
+# 训练
+from yolo_learn.models.train import train
+from yolo_learn.models.export import export_model
+from yolo_learn.models.predict import predict
+
+# 评估
+from yolo_learn.eval.metrics import compute_iou, non_max_suppression
+from yolo_learn.eval.evaluate import Annotation, Prediction, evaluate_predictions
+
+# 可视化
+from yolo_learn.viz.visualize import draw_boxes_pil, yolo_to_xyxy
+```
+
+## 实战挑战
+
+完成 10 个 Notebook 后，试试 [practice/](practice/) 里的安全帽检测挑战。
+
+## 依赖
+
+| 组 | 安装 | 内容 |
+|---|---|---|
+| 核心 | `uv sync` | ultralytics, numpy, matplotlib, pandas, pyyaml |
+| Notebook | `uv sync --extra notebook` | jupyter, ipywidgets, seaborn |
+| 部署 | `uv sync --extra deploy` | onnx, coremltools |
+| Roboflow | `uv sync --extra roboflow` | roboflow SDK |
+| 全部 | `uv sync --extra full` | 以上所有 + dev 工具 |
 
 ## 环境
 
 - Python 3.13+
-- Apple Silicon Mac (MPS 加速)
-- YOLOv8/v11 (ultralytics)
+- Apple Silicon Mac (MPS 加速) / CUDA GPU / CPU
+- ultralytics (YOLOv8/v11)

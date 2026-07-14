@@ -27,7 +27,7 @@ mosaic: 1.0   # Mosaic 增强概率
 mixup: 0.0    # MixUp 增强概率
 
 # 设备
-device: mps  # Apple Silicon
+device: auto  # 自动选择 (mps/cuda/cpu)
 
 # 输出
 project: outputs

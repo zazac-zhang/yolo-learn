@@ -62,10 +62,14 @@
 ```bash
 # 1. 下载数据集（需要 Roboflow API key）
 cd practice
-python download.py
+uv run python download.py
 
 # 2. 开始挑战！
-# 自己写代码完成上面的任务
+# 使用 yolo_learn 模块：
+#   from yolo_learn.data.dataset import read_data_yaml, print_dataset_summary
+#   from yolo_learn.models.train import train
+#   from yolo_learn.eval.evaluate import evaluate_predictions, load_class_names
+#   from yolo_learn.viz.visualize import draw_boxes_pil
 
 # 3. 遇到困难？看参考答案
 # 但建议先自己尝试至少 30 分钟

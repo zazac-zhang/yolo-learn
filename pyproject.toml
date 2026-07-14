@@ -42,6 +42,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/yolo_learn"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
 [tool.ruff]
 line-length = 100
 target-version = "py313"
@@ -53,3 +57,4 @@ select = ["E", "F", "I", "N", "W", "UP"]
 "notebooks/*" = ["E501"]
 "scripts/*" = ["E501"]
 "src/yolo_learn/eval/evaluate.py" = ["N806", "N815"]
+"tests/*" = ["E501"]
