@@ -31,8 +31,22 @@ dev = [
     "ipykernel>=6.25.0",
     "pytest>=8.0",
 ]
+serve = [
+    "fastapi>=0.100",
+    "uvicorn>=0.20",
+    "python-multipart",
+]
+experiment = [
+    "mlflow>=2.0",
+]
+benchmark = [
+    "onnxruntime>=1.16",
+]
+mlops = [
+    "yolo-learn[serve,experiment,benchmark]",
+]
 full = [
-    "yolo-learn[notebook,deploy,roboflow,dev]",
+    "yolo-learn[notebook,deploy,roboflow,dev,mlops]",
 ]
 
 [build-system]
