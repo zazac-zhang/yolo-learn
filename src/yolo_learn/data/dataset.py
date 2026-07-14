@@ -37,7 +37,7 @@ def count_boxes_per_image(labels_dir):
     counts = []
     for label_file in labels_dir.glob("*.txt"):
         with open(label_file) as f:
-            lines = [l for l in f if l.strip()]
+            lines = [line for line in f if line.strip()]
             counts.append(len(lines))
     return counts
 

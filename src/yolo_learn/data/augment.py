@@ -4,7 +4,6 @@ from pathlib import Path
 
 import yaml
 
-
 # 常用增强预设
 AUGMENT_PRESETS = {
     "none": {},
