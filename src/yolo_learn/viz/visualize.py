@@ -1,14 +1,12 @@
 """可视化工具：画 bounding box、标注、对比图等"""
 
-import numpy as np
-
 try:
     import cv2
 except ImportError:
     cv2 = None
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 except ImportError:
     Image = None
 

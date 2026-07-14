@@ -1,0 +1,42 @@
+# 微调训练配置
+# 用于在自定义数据集上进行迁移学习
+
+# 模型（预训练权重）
+model: yolo11n.pt
+
+# 训练参数（迁移学习通常用较少轮数）
+epochs: 30
+batch: 16
+imgsz: 640
+
+# 优化器（迁移学习用较小学习率）
+optimizer: AdamW
+lr0: 0.001
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+
+# 数据增强（迁移学习用较轻的增强）
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+mosaic: 1.0
+mixup: 0.0
+
+# 冻结层数（冻结 backbone，只训练 head）
+freeze: 10
+
+# 设备
+device: auto
+
+# 输出
+project: outputs
+name: finetune
+
+# 其他
+patience: 20
+save: true
+verbose: true

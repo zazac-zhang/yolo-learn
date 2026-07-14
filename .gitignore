@@ -8,7 +8,7 @@ wheels/
 .venv
 
 # Data (large files, don't commit)
-data/
+/data/
 *.pt
 *.pth
 *.onnx

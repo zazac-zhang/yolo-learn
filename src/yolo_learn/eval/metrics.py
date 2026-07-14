@@ -58,9 +58,6 @@ def compute_iou_batch(boxes1, boxes2):
     boxes1 = np.array(boxes1)
     boxes2 = np.array(boxes2)
 
-    N = boxes1.shape[0]
-    M = boxes2.shape[0]
-
     # 扩展维度进行广播计算
     boxes1 = boxes1[:, np.newaxis, :]  # (N, 1, 4)
     boxes2 = boxes2[np.newaxis, :, :]  # (1, M, 4)

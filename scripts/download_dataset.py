@@ -1,30 +1,43 @@
-"""下载数据集脚本."""
+"""下载数据集脚本 - 薄 CLI 壳，核心逻辑在 yolo_learn.data.download."""
 
-from pathlib import Path
+import argparse
 
-import yaml
+from yolo_learn.data.download import download_coco128, download_roboflow_dataset
 
 
-def download_coco128():
-    """下载 COCO128 数据集到 data/ 目录."""
-    from ultralytics import YOLO
+def main():
+    parser = argparse.ArgumentParser(description="下载 YOLO 数据集")
+    subparsers = parser.add_subparsers(dest="command", help="数据集来源")
 
-    # ultralytics 会自动下载 COCO128
-    print("正在下载 COCO128 数据集...")
-    data_dir = Path(__file__).parent.parent / "data" / "coco128"
+    # COCO128
+    coco_parser = subparsers.add_parser("coco128", help="下载 COCO128 数据集")
+    coco_parser.add_argument("--target-dir", default="data", help="目标目录")
 
-    if data_dir.exists():
-        print(f"数据集已存在: {data_dir}")
-        return
+    # Roboflow
+    rf_parser = subparsers.add_parser("roboflow", help="从 Roboflow 下载数据集")
+    rf_parser.add_argument("--api-key", required=True, help="Roboflow API key")
+    rf_parser.add_argument("--workspace", required=True, help="工作空间名称")
+    rf_parser.add_argument("--project", required=True, help="项目名称")
+    rf_parser.add_argument("--version", type=int, required=True, help="版本号")
+    rf_parser.add_argument("--target-dir", default="data", help="目标目录")
 
-    # 使用 ultralytics 内置的下载机制
-    # 这会自动下载并解压到正确位置
-    model = YOLO("yolo11n.pt")
-    # 触发数据集下载（只需调用一次）
-    from ultralytics.data.utils import DATASETS_DIR
-    print(f"数据集将下载到: {DATASETS_DIR}")
-    print("使用 COCO128 数据集名在训练时会自动下载")
+    args = parser.parse_args()
+
+    if args.command == "coco128":
+        path = download_coco128(args.target_dir)
+        print(f"数据集下载完成: {path}")
+    elif args.command == "roboflow":
+        path = download_roboflow_dataset(
+            api_key=args.api_key,
+            workspace=args.workspace,
+            project=args.project,
+            version=args.version,
+            target_dir=args.target_dir,
+        )
+        print(f"数据集下载完成: {path}")
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
-    download_coco128()
+    main()

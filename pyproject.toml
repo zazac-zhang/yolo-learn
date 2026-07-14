@@ -6,25 +6,33 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "ultralytics>=8.3.0",
-    "jupyter>=1.0.0",
-    "ipywidgets>=8.0.0",
-    "matplotlib>=3.7.0",
-    "seaborn>=0.13.0",
-    "opencv-python>=4.8.0",
     "pillow>=10.0.0",
     "numpy>=1.24.0",
-    "pandas>=2.0.0",
     "pyyaml>=6.0",
-    "tqdm>=4.65.0",
-    "onnx>=1.14.0",
-    "coremltools>=7.0",
-    "roboflow>=1.1.0",
+    "matplotlib>=3.7.0",
+    "pandas>=2.0.0",
 ]
 
 [project.optional-dependencies]
+notebook = [
+    "jupyter>=1.0.0",
+    "ipywidgets>=8.0.0",
+    "seaborn>=0.13.0",
+]
+deploy = [
+    "onnx>=1.14.0",
+    "coremltools>=7.0",
+]
+roboflow = [
+    "roboflow>=1.1.0",
+]
 dev = [
     "ruff>=0.1.0",
     "ipykernel>=6.25.0",
+    "pytest>=8.0",
+]
+full = [
+    "yolo-learn[notebook,deploy,roboflow,dev]",
 ]
 
 [build-system]
@@ -37,3 +45,11 @@ packages = ["src/yolo_learn"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"notebooks/*" = ["E501"]
+"scripts/*" = ["E501"]
+"src/yolo_learn/eval/evaluate.py" = ["N806", "N815"]
